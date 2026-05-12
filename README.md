@@ -1,4 +1,4 @@
-# AI Vision Follow Drone
+# AI_UAV
 
 An autonomous drone system that uses computer vision to detect and follow a target while maintaining a safe, configurable distance.  
 This project focuses on real-time perception, control feedback, and hardware–software integration for autonomous flight.
