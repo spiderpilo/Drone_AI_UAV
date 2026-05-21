@@ -12,3 +12,6 @@
 - Installed OpenCV (4.10.0), onnxruntime (1.26.0), pymavlink (2.4.49) on Pi
 - Downloaded YOLOv8n ONNX model (~13 MB) to ~/drone/models/yolov8n.onnx
 - Created person_detection.py: YOLOv8n person detection + MAVLink velocity commands to Pixhawk
+- Configured Pi as WiFi access point (SSID: DroneAI, IP: 192.168.4.1)
+  - Auto-starts on boot via NetworkManager — no router needed in the field
+  - Connect: WiFi → DroneAI / Bullet1234, then ssh piolo@192.168.4.1
