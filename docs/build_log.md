@@ -15,3 +15,8 @@
 - Configured Pi as WiFi access point (SSID: DroneAI, IP: 192.168.4.1)
   - Auto-starts on boot via NetworkManager — no router needed in the field
   - Connect: WiFi → DroneAI / Bullet1234, then ssh piolo@192.168.4.1
+
+### May 22, 2026
+- Soldered ESC's (electronic speed controllers) to PDB (power distribution board)
+- 3D printed custom mounts
+- Mounted Webcam

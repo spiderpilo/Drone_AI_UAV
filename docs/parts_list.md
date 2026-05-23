@@ -19,3 +19,9 @@
 ### PDB (Power Distribution Board)
 - Acxico Board XT60 3-4S 9-18V 5V 12V Output PDB
 
+### Computer 
+- Raspberry Pi 4
+
+### Webcam
+- Logitech C920s HD Pro Webcam
+
