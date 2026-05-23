@@ -20,3 +20,8 @@
 - Soldered ESC's (electronic speed controllers) to PDB (power distribution board)
 - 3D printed custom mounts
 - Mounted Webcam
+
+### May 23, 2026
+- Mounted Raspberry Pi 4 onto frame
+- Motor Tests: ALL PASS
+- Reciever and transmitter pairing and testing
