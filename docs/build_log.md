@@ -25,3 +25,21 @@
 - Mounted Raspberry Pi 4 onto frame
 - Motor Tests: ALL PASS
 - Reciever and transmitter pairing and testing
+
+
+### May 29, 2026
+- Calibrated Pixhawk 
+- Removed Webcam and Raspberry Pi for flight testing
+
+### June 8, 2026
+- Drone ARMED successfully via channel 2
+- First Test Flight: Drone tilts on one side before take off
+
+### June 9, 2026
+- Recalibrated Drone on QC ground control
+- Fixed motor Orientation 
+- Test Flight 2: Drone lifted from ground Succesfully 
+
+### June 10, 2026
+- Test flight 3: Drone succesfully leaves ground 
+- Drone appears to be difficult to control and hard to maintain a fixed height
