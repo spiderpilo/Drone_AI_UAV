@@ -15,12 +15,15 @@ Usage:
   python3 person_detection.py
   python3 person_detection.py --port /dev/ttyAMA0 --baud 57600 --camera 0
   python3 person_detection.py --dry-run   # camera + detection only, no flight commands
+  python3 person_detection.py --stream    # live video at http://192.168.4.1:8080
 """
 
 import argparse
 import os
 import sys
+import threading
 import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import cv2
 import numpy as np
@@ -216,6 +219,81 @@ def compute_velocity(det: dict, frame_w: int, frame_h: int) -> tuple[float, floa
 
 
 # ---------------------------------------------------------------------------
+# MJPEG streaming server (--stream flag)
+# ---------------------------------------------------------------------------
+STREAM_PORT = 8080
+
+class _StreamServer:
+    """Serves the latest annotated frame as an MJPEG stream over HTTP."""
+
+    def __init__(self, port: int = STREAM_PORT):
+        self._frame = None
+        self._lock = threading.Lock()
+        self._port = port
+
+        parent = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type",
+                                 "multipart/x-mixed-replace; boundary=frame")
+                self.end_headers()
+                while True:
+                    with parent._lock:
+                        jpg = parent._frame
+                    if jpg is None:
+                        time.sleep(0.05)
+                        continue
+                    try:
+                        self.wfile.write(b"--frame\r\n")
+                        self.wfile.write(b"Content-Type: image/jpeg\r\n\r\n")
+                        self.wfile.write(jpg)
+                        self.wfile.write(b"\r\n")
+                    except BrokenPipeError:
+                        break
+                    time.sleep(0.05)
+
+            def log_message(self, *_):
+                pass
+
+        self._httpd = HTTPServer(("0.0.0.0", self._port), Handler)
+        t = threading.Thread(target=self._httpd.serve_forever, daemon=True)
+        t.start()
+        print(f"[stream] Live video at http://192.168.4.1:{self._port}")
+
+    def update(self, frame: np.ndarray):
+        _, jpg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
+        with self._lock:
+            self._frame = jpg.tobytes()
+
+
+def _annotate_frame(frame, detections, best, vx, vz, yr):
+    """Draw bounding boxes and control info on the frame."""
+    fh, fw = frame.shape[:2]
+
+    # Crosshair at frame centre
+    cv2.line(frame, (fw // 2 - 20, fh // 2), (fw // 2 + 20, fh // 2), (0, 255, 0), 1)
+    cv2.line(frame, (fw // 2, fh // 2 - 20), (fw // 2, fh // 2 + 20), (0, 255, 0), 1)
+
+    for det in detections:
+        x, y, bw, bh = det["bbox"]
+        color = (0, 255, 0) if det is best else (200, 200, 200)
+        cv2.rectangle(frame, (x, y), (x + bw, y + bh), color, 2)
+        cv2.putText(frame, f"{det['conf']:.0%}", (x, y - 6),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+
+    if best:
+        cv2.putText(frame, f"vx={vx:+.2f} vz={vz:+.2f} yr={yr:+.2f}",
+                    (10, fh - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    else:
+        cv2.putText(frame, "NO PERSON", (10, fh - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+
+    return frame
+
+
+# ---------------------------------------------------------------------------
 # Main loop
 # ---------------------------------------------------------------------------
 def run(args):
@@ -229,6 +307,8 @@ def run(args):
         except Exception as exc:
             print(f"[mavlink] WARNING: {exc}")
             print("[mavlink] Continuing in camera-only mode (no flight commands)")
+
+    stream = _StreamServer() if args.stream else None
 
     cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
@@ -257,12 +337,14 @@ def run(args):
             detections = detector.detect(frame)
             now = time.monotonic()
 
+            best = None
+            vx = vy = vz = yr = 0.0
+
             if detections:
                 last_person_t = now
                 hovering = False
 
                 if now - last_cmd_t >= cmd_interval:
-                    # Pick the largest bounding box (assumed closest)
                     best = max(detections, key=lambda d: d["bbox"][2] * d["bbox"][3])
                     vx, vy, vz, yr = compute_velocity(best, fw, fh)
 
@@ -284,6 +366,10 @@ def run(args):
                         drone.stop()
                     hovering = True
 
+            if stream:
+                annotated = _annotate_frame(frame.copy(), detections, best, vx, vz, yr)
+                stream.update(annotated)
+
     except KeyboardInterrupt:
         print("\n[main] Interrupted")
     finally:
@@ -303,6 +389,8 @@ def main():
     parser.add_argument("--camera",  default=DEFAULT_CAMERA, type=int, help="Camera index")
     parser.add_argument("--dry-run", action="store_true",
                         help="Run detection only, send no flight commands")
+    parser.add_argument("--stream",  action="store_true",
+                        help="Serve live MJPEG video at http://192.168.4.1:8080")
     run(parser.parse_args())
 
 

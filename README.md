@@ -33,6 +33,9 @@ The Pi runs as its own WiFi hotspot — no external router needed.
 # Dry run (camera + detection only, no flight commands)
 python3 ~/drone/person_detection.py --dry-run
 
+# With live video stream (open http://192.168.4.1:8080 in browser)
+python3 ~/drone/person_detection.py --dry-run --stream
+
 # Full run with Pixhawk connected
-python3 ~/drone/person_detection.py --port /dev/ttyACM0
+python3 ~/drone/person_detection.py --port /dev/ttyACM0 --stream
 ```
