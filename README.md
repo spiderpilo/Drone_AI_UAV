@@ -39,3 +39,20 @@ python3 ~/drone/person_detection.py --dry-run --stream
 # Full run with Pixhawk connected
 python3 ~/drone/person_detection.py --port /dev/ttyACM0 --stream
 ```
+
+### Updating the software
+
+After editing code locally in VSCode, push your changes and pull them on the Pi:
+
+**On your computer (VSCode terminal):**
+```bash
+git add -A && git commit -m "your message" && git push
+```
+
+**On the Pi (SSH session):**
+```bash
+cd ~/drone
+git pull
+```
+
+The updated code is now ready to run on the Pi.
