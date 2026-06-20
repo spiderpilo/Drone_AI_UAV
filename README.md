@@ -56,3 +56,43 @@ git pull
 ```
 
 The updated code is now ready to run on the Pi.
+
+---
+
+## Custom Model Training
+
+Fine-tune YOLOv8n on person detection data and deploy via Docker.
+
+### 1. Train the model (on your Mac)
+
+```bash
+pip install -r training/requirements.txt
+python3 training/train.py --epochs 30
+```
+
+The trained model is saved to `training/output/person_detector.onnx`.
+
+### 2. Build and deploy with Docker
+
+Copy the trained model into the Docker build context, then deploy to the Pi:
+
+```bash
+cp training/output/person_detector.onnx docker/models/
+./docker/deploy.sh
+```
+
+### 3. Run on the Pi
+
+```bash
+# Dry run (camera only)
+docker run --rm --device /dev/video0 drone-vision --dry-run
+
+# With Pixhawk + live stream
+docker run --rm --device /dev/video0 --device /dev/ttyACM0 -p 8080:8080 drone-vision --port /dev/ttyACM0
+```
+
+> **Note:** Docker must be installed on the Pi first:
+> ```bash
+> curl -fsSL https://get.docker.com | sh
+> sudo usermod -aG docker piolo
+> ```
