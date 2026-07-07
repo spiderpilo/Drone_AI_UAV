@@ -5,3 +5,9 @@ __pycache__/
 .vscode/
 .idea/
 
+# Training datasets and output (too large for git)
+training/dataset/images/
+training/dataset/labels/
+training/output/
+docker/models/*.onnx
+

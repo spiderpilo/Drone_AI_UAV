@@ -43,3 +43,7 @@
 ### June 10, 2026
 - Test flight 3: Drone succesfully leaves ground 
 - Drone appears to be difficult to control and hard to maintain a fixed height
+
+### July 7, 2026
+- Re-Alligned motors and propllers
+- Added Loiter function to the Controller.(Maintain Drone postion)
